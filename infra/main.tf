@@ -15,7 +15,26 @@ resource "aws_instance" "example" {
   ami = "ami-0a716d3f3b16d290c"
   instance_type = "t3.micro"
 
+  vpc_security_group_ids = [aws_security_group.instance.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              echo "Hello world" > index.html
+              nohup busybox httpd -f -p 8080 &
+              EOF
+  user_data_replace_on_change = true
   tags = {
     Name = "my-ubuntu"
+  }
+}
+
+resource "aws_security_group" "instance" {
+  name="web"
+
+  ingress {
+    from_port = 8080
+    to_port   = 8080
+    protocol  = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
